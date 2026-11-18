@@ -1,0 +1,244 @@
+git
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #e0e7ff, #fce7f3, #dbeafe);
+    color: #263445;
+    min-height: 100vh;
+}
+
+header {
+    background: linear-gradient(120deg, #6c3fc5, #3878d8, #16a6a1);
+    color: white;
+    text-align: center;
+    padding: 45px 20px;
+    box-shadow: 0 5px 20px rgba(50, 50, 120, 0.2);
+}
+
+header h1 {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+
+header p {
+    color: #e5eaff;
+    font-size: 16px;
+}
+
+main {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.knihy-box {
+    background: white;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(70, 60, 150, 0.12);
+    border-top: 5px solid #8054d8;
+}
+
+.nadpis {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.nadpis h2 {
+    color: #6039ae;
+    font-size: 25px;
+}
+
+.formular-knihy {
+    display: grid;
+    grid-template-columns: auto repeat(4, minmax(120px, 1fr));
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.formular-knihy label {
+    display: grid;
+    gap: 6px;
+    color: #4b5563;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.formular-knihy input {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font: inherit;
+}
+
+.formular-knihy input:focus {
+    outline: 2px solid #4389e8;
+    outline-offset: 1px;
+}
+
+.sprava {
+    min-height: 22px;
+    margin-bottom: 8px;
+    color: #167447;
+    font-size: 14px;
+}
+
+.sprava.chyba {
+    color: #b42318;
+}
+
+button {
+    background: linear-gradient(120deg, #8054d8, #4389e8);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(90, 70, 190, 0.3);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th {
+    background: #754bc4;
+    color: white;
+    padding: 16px;
+}
+
+td {
+    padding: 16px;
+    border-bottom: 1px solid #e9e4f5;
+}
+
+tbody tr:nth-child(even) {
+    background: #f4f0ff;
+}
+
+tbody tr:nth-child(odd) {
+    background: #ffffff;
+}
+
+tbody tr:hover {
+    background: #e5f3ff;
+    transition: 0.2s;
+}
+
+td:first-child {
+    color: #7045c1;
+    font-weight: bold;
+}
+
+.akcie {
+    white-space: nowrap;
+}
+
+.bunka-cena {
+    min-width: 250px;
+}
+
+.formular-cena,
+.formular-autor {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.formular-cena[hidden],
+.formular-autor[hidden] {
+    display: none;
+}
+
+.formular-cena input,
+.formular-autor input {
+    width: 100px;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #9ca3af;
+    border-radius: 5px;
+    font: inherit;
+}
+
+.formular-cena button,
+.formular-autor button {
+    padding: 8px 10px;
+    font-size: 12px;
+}
+
+.formular-cena .tlacidlo-potvrdit,
+.formular-autor .tlacidlo-potvrdit {
+    background: #167447;
+}
+
+.formular-cena .tlacidlo-zrusit,
+.formular-autor .tlacidlo-zrusit {
+    background: #64748b;
+}
+
+.akcie button {
+    padding: 8px 10px;
+    margin: 2px;
+    font-size: 12px;
+}
+
+.akcie .tlacidlo-vymazat {
+    background: #b42318;
+}
+
+footer {
+    text-align: center;
+    padding: 25px;
+    color: #65558b;
+}
+
+@media (max-width: 600px) {
+    .nadpis {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .knihy-box {
+        padding: 18px;
+    }
+
+    .formular-knihy {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .formular-knihy button {
+        grid-column: 1 / -1;
+    }
+
+    header h1 {
+        font-size: 28px;
+    }
+}
+

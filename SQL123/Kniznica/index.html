@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja knižnica</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>📚 Moja knižnica</h1>
+        <p>Prehľad všetkých kníh v databáze</p>
+    </header>
+
+    <main>
+        <section class="knihy-box">
+            <div class="nadpis">
+                <h2>Zoznam kníh</h2>
+                <button onclick="nacitajKnihy()">Obnoviť zoznam</button>
+            </div>
+
+            <form id="formular-knihy" class="formular-knihy">
+                <button type="submit">Pridať knihu</button>
+                <label>Názov knihy<input name="nazov" type="text" required></label>
+                <label>Autor<input name="autor" type="text" required></label>
+                <label>Rok vydania<input name="rok" type="number" step="1" required></label>
+                <label>Cena (€)<input name="cena" type="number" min="0" step="0.01" required></label>
+            </form>
+            <p id="sprava" class="sprava" role="status" aria-live="polite"></p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Názov knihy</th>
+                            <th>Autor</th>
+                            <th>Rok vydania</th>
+                            <th>Cena</th>
+                            <th>Akcie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zoznam-knih">
+                        <tr>
+                            <td colspan="6">Načítavam knihy...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 Moja knižnica</p>
+    </footer>
+
+    <script>
+        const formatovacCeny = new Intl.NumberFormat('sk-SK', {
+            style: 'currency',
+            currency: 'EUR'
+        });
+
+        function bezpecnyText(hodnota) {
+            return String(hodnota ?? '').replace(/[&<>"']/g, znak => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[znak]);
+        }
+
+        function zobrazSpravu(text, chyba = false) {
+            const sprava = document.getElementById('sprava');
+            sprava.textContent = text;
+            sprava.classList.toggle('chyba', chyba);
+        }
+
+        async function posliPoziadavku(url, moznosti = {}) {
+            const response = await fetch(url, moznosti);
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.chyba || 'Požiadavku sa nepodarilo dokončiť.');
+            }
+            return data;
+        }
+
+        function nacitajKnihy() {
+            fetch('/knihy')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Chyba pri načítaní kníh');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const zoznam = document.getElementById('zoznam-knih');
+
+                    if (data.length === 0) {
+                        zoznam.innerHTML = '<tr><td colspan="6">Zatiaľ nemáš žiadne knihy.</td></tr>';
+                        return;
+                    }
+
+                    zoznam.innerHTML = data.map(kniha => `
+                        <tr>
+                            <td>${bezpecnyText(kniha.id)}</td>
+                            <td>${bezpecnyText(kniha.nazov)}</td>
+                            <td class="bunka-autor">
+                                <span>${bezpecnyText(kniha.autor)}</span>
+                                <form class="formular-autor" data-id="${bezpecnyText(kniha.id)}" hidden>
+                                    <input type="text" value="${bezpecnyText(kniha.autor)}" aria-label="Nový autor" required>
+                                    <button type="submit" class="tlacidlo-potvrdit">Potvrdiť</button>
+                                    <button type="button" class="tlacidlo-zrusit" data-akcia="zrusit">Zrušiť</button>
+                                </form>
+                            </td>
+                            <td>${bezpecnyText(kniha.rok)}</td>
+                            <td class="bunka-cena">
+                                <span>${kniha.cena == null ? '—' : formatovacCeny.format(Number(kniha.cena))}</span>
+                                <form class="formular-cena" data-id="${bezpecnyText(kniha.id)}" hidden>
+                                    <input type="text" inputmode="decimal" value="${bezpecnyText(kniha.cena ?? '')}" aria-label="Nová cena" required>
+                                    <button type="submit" class="tlacidlo-potvrdit">Potvrdiť</button>
+                                    <button type="button" class="tlacidlo-zrusit" data-akcia="zrusit">Zrušiť</button>
+                                </form>
+                            </td>
+                            <td class="akcie">
+                                <button type="button" data-akcia="autor" data-id="${bezpecnyText(kniha.id)}">Zmeniť autora</button>
+                                <button type="button" class="tlacidlo-cena" data-akcia="cena" data-id="${bezpecnyText(kniha.id)}">Zmeniť cenu</button>
+                                <button type="button" class="tlacidlo-vymazat" data-akcia="vymazat" data-id="${bezpecnyText(kniha.id)}">Vymazať</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => {
+                    document.getElementById('zoznam-knih').innerHTML =
+                        '<tr><td colspan="6">Nepodarilo sa načítať knihy.</td></tr>';
+                    console.error(error);
+                });
+        }
+
+        document.getElementById('formular-knihy').addEventListener('submit', async event => {
+            event.preventDefault();
+            const formular = event.currentTarget;
+            const hodnoty = Object.fromEntries(new FormData(formular));
+
+            try {
+                await posliPoziadavku('/knihy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(hodnoty)
+                });
+                formular.reset();
+                zobrazSpravu('Kniha bola pridaná.');
+                nacitajKnihy();
+            } catch (error) {
+                zobrazSpravu(error.message, true);
+            }
+        });
+
+        document.getElementById('zoznam-knih').addEventListener('click', async event => {
+            const tlacidlo = event.target.closest('button[data-akcia]');
+            if (!tlacidlo) return;
+
+            const { id, akcia } = tlacidlo.dataset;
+            if (akcia === 'autor') {
+                const formular = tlacidlo.closest('tr').querySelector('.formular-autor');
+                formular.hidden = false;
+                formular.querySelector('input').focus();
+                formular.querySelector('input').select();
+                return;
+            }
+            if (akcia === 'cena') {
+                const formular = tlacidlo.closest('tr').querySelector('.formular-cena');
+                formular.hidden = false;
+                formular.querySelector('input').focus();
+                formular.querySelector('input').select();
+                return;
+            }
+            if (akcia === 'zrusit') {
+                const formular = tlacidlo.closest('.formular-cena, .formular-autor');
+                formular.reset();
+                formular.hidden = true;
+                return;
+            }
+
+            try {
+                if (!confirm('Naozaj chceš vymazať túto knihu?')) return;
+                await posliPoziadavku(`/knihy/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                zobrazSpravu('Kniha bola vymazaná.');
+                nacitajKnihy();
+            } catch (error) {
+                zobrazSpravu(error.message, true);
+            }
+        });
+
+        document.getElementById('zoznam-knih').addEventListener('submit', async event => {
+            const formular = event.target.closest('.formular-cena, .formular-autor');
+            if (!formular) return;
+            event.preventDefault();
+
+            const vstup = formular.querySelector('input');
+            if (formular.classList.contains('formular-autor')) {
+                const autor = vstup.value.trim();
+                if (!autor) {
+                    zobrazSpravu('Zadaj meno autora.', true);
+                    vstup.focus();
+                    return;
+                }
+
+                try {
+                    await posliPoziadavku(`/knihy/${encodeURIComponent(formular.dataset.id)}/autor`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ autor })
+                    });
+                    zobrazSpravu('Autor bol zmenený.');
+                    nacitajKnihy();
+                } catch (error) {
+                    zobrazSpravu(error.message, true);
+                }
+                return;
+            }
+
+            const textCeny = vstup.value.trim().replace(',', '.');
+            const cena = Number(textCeny);
+            if (!textCeny || !Number.isFinite(cena) || cena < 0) {
+                zobrazSpravu('Zadaj platnú nezápornú cenu.', true);
+                vstup.focus();
+                return;
+            }
+
+            try {
+                await posliPoziadavku(`/knihy/${encodeURIComponent(formular.dataset.id)}/cena`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cena })
+                });
+                zobrazSpravu('Cena bola zmenená.');
+                nacitajKnihy();
+            } catch (error) {
+                zobrazSpravu(error.message, true);
+            }
+        });
+
+        nacitajKnihy();
+    </script>
+
+</body>
+</html>

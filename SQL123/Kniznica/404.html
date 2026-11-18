@@ -1,0 +1,8 @@
+<h1>404 - Stránka sa nenašla</h1>
+<a href = "/">Späť na úvod</a>
+
+// server.js - na konci, pred app.listen: app.use((req,res) => {
+    res.status(404).sendFile(__dirname + "/404.html");
+});
+
+//Skúška: http://localhost:3000/neexistuje
